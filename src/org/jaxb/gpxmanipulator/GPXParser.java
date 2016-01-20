@@ -10,11 +10,12 @@ public class GPXParser {
 
       try {
 
-            /*File gpxFile = new File("/home/leh/gpx/live/upload_test_nl.gpx");
+            File gpxFile = new File("/home/leh/gpx/live/upload_test_nl_input4java.gpx");
             File parsedFile = new File("/home/leh/gpx/live/upload_test_nl_parsed.gpx");
-            */
-    	  File gpxFile = new File("C:\\src\\java\\workspace\\upload_test_nl.gpx");
+            
+    	  /*File gpxFile = new File("C:\\src\\java\\workspace\\upload_test_nl.gpx");
           File parsedFile = new File("C:\\src\\java\\workspace\\upload_test_nl_parsed.gpx");
+          */
           
             JAXBContext jc = JAXBContext.newInstance("org.jaxb.gpxmanipulator");
 
@@ -24,22 +25,21 @@ public class GPXParser {
             // Unmarshal GpxType    
             GpxType gpx = (GpxType) JAXBIntrospector.getValue( unmarshaller.unmarshal(gpxFile) );
           
-            //gpx.setCreator("org.jaxb.gpxmanipulator");
+            // Change creator of GPX, since this program modifies GPX.
+            // Preserve original creator at the end of string.
+            gpx.getCreator().toString();
+            gpx.setCreator("org.jaxb.gpxmanipulator. Original - " + gpx.getCreator().toString());
            
-            //gpx.getTrk().forEach(arg0)
-           
+            // go through all treckpoints in GPX file
+            // and make necessary manipulations with them.
             List<TrkType> trkList = gpx.getTrk();
             for (int i = 0; i < trkList.size(); i++) {
                 TrkType trk = trkList.get(i);
-                //trk.setName("EEE");
-                trk.name="EEE2";
                 System.out.println("Trek name = [" + trk.name + "]");
                
                 List<TrksegType> segList = trk.getTrkseg();
                 for (int j = 0; j < segList.size(); j++) {
                     TrksegType seg = segList.get(j);
-                    //seg.trkpt.clear(); // IT WORKS!!!
-                    //seg.getTrkpt().remove(1);
                     System.out.println("Segment number [" + j + "]");
                    
                    
@@ -57,29 +57,21 @@ public class GPXParser {
                        
                         // Delete points near your "HotSpot" (home, office),
                         // in order to hide your actual location from others.
-                        BigDecimal latMin = new BigDecimal("50.4400000000");
+                        //BigDecimal latMin = new BigDecimal("50.4400000000");
                         //BigDecimal latMax = new BigDecimal("50.4800000000");
                        
-                        //BigDecimal latMin = new BigDecimal("50.4635");
-                        //BigDecimal latMax = new BigDecimal("50.4640");
-                        if ( pt.lat.compareTo(latMin) == 1 ) {
-                            seg.getTrkpt().remove(k);
+                        BigDecimal latMin = new BigDecimal("50.4635");
+                        BigDecimal latMax = new BigDecimal("50.4640");
+                        if (( pt.lat.compareTo(latMin) == 1 ) && ( pt.lat.compareTo(latMax) == -1 )) {
+                        	ptList.remove(k);
                             k--;
                             System.out.println("Point removed");
                         } else {
                             System.out.println("Point remains in trek");
                         }
-                       
-                        /*if (( pt.lat.compareTo(latMin) == 1 ) && ( pt.lat.compareTo(latMax) == -1 )) {
-                            seg.getTrkpt().remove(k);
-                            //seg.getTrkpt().
-                            System.out.println("Point removed");
-                        }
-                        */
-                       
-                    }
-                   
 
+                    }
+                    
                 }
             }
    
