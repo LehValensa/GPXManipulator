@@ -13,7 +13,7 @@ public class GPXParser {
             File gpxFile = new File("/home/leh/gpx/live/upload_test_nl_input4java.gpx");
             File parsedFile = new File("/home/leh/gpx/live/upload_test_nl_parsed.gpx");
             
-            // AAA
+            // BBB
     	  /*File gpxFile = new File("C:\\src\\java\\workspace\\upload_test_nl.gpx");
           File parsedFile = new File("C:\\src\\java\\workspace\\upload_test_nl_parsed.gpx");
           */
