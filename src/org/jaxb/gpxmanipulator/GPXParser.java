@@ -1,31 +1,12 @@
 package org.jaxb.gpxmanipulator;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.List;
-import javax.xml.bind.*;
 
+// Parser that makes custom changes in GPX.
 public class GPXParser {
-    public static void main(String[] args) {
+    public void parseGPX(GpxType gpx) {
 
-      try {
-
-            File gpxFile = new File("/home/leh/gpx/live/upload_test_nl_input4java.gpx");
-            File parsedFile = new File("/home/leh/gpx/live/upload_test_nl_parsed.gpx");
-            
-            // BBB
-    	  /*File gpxFile = new File("C:\\src\\java\\workspace\\upload_test_nl.gpx");
-          File parsedFile = new File("C:\\src\\java\\workspace\\upload_test_nl_parsed.gpx");
-          */
-          
-            JAXBContext jc = JAXBContext.newInstance("org.jaxb.gpxmanipulator");
-
-            Unmarshaller unmarshaller = jc.createUnmarshaller();
-            Marshaller jaxbMarshaller = jc.createMarshaller();
-     
-            // Unmarshal GpxType    
-            GpxType gpx = (GpxType) JAXBIntrospector.getValue( unmarshaller.unmarshal(gpxFile) );
-          
             // Change creator of GPX, since this program modifies GPX.
             // Preserve original creator at the end of string.
             gpx.getCreator().toString();
@@ -75,19 +56,9 @@ public class GPXParser {
                     
                 }
             }
-   
-            // output pretty printed
-            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-   
-            // Marshal GPX to file.
-            jaxbMarshaller.marshal(gpx, parsedFile);
-          
-            // debug output of resulting GPX
-            //jaxbMarshaller.marshal(gpx, System.out);
 
-          } catch (JAXBException e) {
-              e.printStackTrace();
-          }
+
+
 
     }
 }
