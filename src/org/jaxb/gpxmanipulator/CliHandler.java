@@ -5,132 +5,83 @@ import java.util.logging.Logger;
 import org.apache.commons.cli.*;
 
 // Handler of options passed via Command Line Interface.
-// TODO: refactor using http://www.javadocexamples.com/java_source/org/biojava/app/BioGetSeq.java.html
+// Usage example is taken from:
+//    http://www.javadocexamples.com/java_source/org/biojava/app/BioGetSeq.java.html
+/* My options: -i "C:\\src\\java\\workspace\\upload_test_nl.gpx" -o "C:\\src\\java\\workspace\\upload_test_nl_parsed.gpx"
+ */
+public class CliHandler
+{
+	 private static final Logger log = Logger.getLogger("");
+	 private String[] args;
+	 private static Options opts;
+	 public static CommandLine cmd;
 
-public class CliHandler {
-	 private static final Logger log = Logger.getLogger(CliHandler.class.getName());
-	 private String[] args = null;
-	 private Options options = new Options();
-	 private CommandLine cmd = null;
-
-	 public CliHandler(String[] args) {
-
-	  this.args = args;
-
-	  options.addOption("h", "help", false, "show help.");
-	  options.addOption("i", "input-file", true, "Input GPX file");
-	  options.addOption("o", "output-file", true, "Output GPX file");
-	  options.getOption("o").setRequired(true);
-
+	 public CliHandler(String[] args) throws Exception
+	 {
+		  this.args = args;
+		  opts = createOptions();
+		  this.parse();
 	 }
-
-	 public String getInputFile() {
+	 
+	 private static Options createOptions()
+     {
+	    Options opts = new Options();
+	    boolean hasArg = true;
+	    OptionGroup groupRequired = new OptionGroup(); // at least 1 of options from this group is mandatory
+	    												// Create another group if there is another mandatory option.
+	    groupRequired.setRequired(true);
+	    
+	    // Define options
+	    Option inputFile = new Option("i", "input-file", hasArg, "Input GPX file");
+	    groupRequired.addOption(inputFile); // set this option mandatory (either -i <GPX> or -h should be specified)
+	
+	    Option outputFile = new Option("o", "output-file", hasArg, "Output GPX file");
+	    opts.addOption(outputFile);
+	
+	    Option help = new Option("h", "help", ! hasArg, "Command line help");
+	    opts.addOption(help);
+	    groupRequired.addOption(help); // set this option mandatory (either -i <GPX> or -h should be specified)
+	    
+	    opts.addOptionGroup(groupRequired); // at least 1 of these options should be specified in this group
+	    return opts;
+      }
+	 
+	 public String getInputFile()
+	 {
 		 return cmd.getOptionValue("i");
 	 }
 	 
-	 public String getOutputFile() {
+	 public String getOutputFile()
+	 {
 		 return cmd.getOptionValue("o");
 	 }
 	 
-	 public void parse() {
-	  //CommandLineParser parser = new BasicParser();
-		 CommandLineParser parser = new GnuParser();
-	  
-	  try {
-	   cmd = parser.parse(options, args);
-
-	   if (cmd.hasOption("h"))
-	    help();
-/*
-	   if (cmd.hasOption("i")) {
-	    log.log(Level.INFO, "Using cli argument -i=" + cmd.getOptionValue("i"));
-	    //inputf=cmd.getOptionValue("i");
-	    // Whatever you want to do with the setting goes here
-	    
-	   } else {
-	    log.log(Level.SEVERE, "MIssing i option");
-	    help();
-	   }
-*/
-	  } catch (ParseException e) {
-	   log.log(Level.SEVERE, "Failed to parse comand line properties\n" + e.getMessage());
-	   help();
-	  }
+	 public void parse()
+	 {
+		 try
+		 {
+			 cmd = new GnuParser().parse(opts, args);
+			 
+			 if (cmd.hasOption("h"))
+				 exitHelp(opts, 0, "");
+		 }
+		 catch (Exception e)
+		 {
+				exitHelp(opts, 1, e.getMessage());
+		 }
 	 }
 
-	 private void help() {
-	  // This prints out some help
-	  HelpFormatter formater = new HelpFormatter();
-
-	  formater.printHelp("GPXManupulator", options);
-	  System.exit(0);
-	 }
-	}
-
-/*
-import org.apache.commons.cli.*;
-
-public class CliHandler {
- 
-    public final static String INPUT_FILE = "input-file";
-    //public final static String USER_PER_ROOM = "user-per-room";
- 
-    private Options options;
-    private CommandLine line;
- 
-    public CliHandler() {args
- 
-        options = new Options();
-        final Option configFileOption = Option.builder("cf")
-                .argName("configfile")
-                .hasArg()
-                .desc("Config file for Genome Store")
-                .build();
-        
-        options.addOption( Option.Builder.withLongOpt(INPUT_FILE)
-                                .withDescription( "Input GPX file" )
-                                .hasArg()
-                                .withArgName("NUMBER")
-                                .create());
- 
-        options.addOption(Option.Builder.withLongOpt("help")
-                .withDescription("Print help")
-                .create("h"));
-
-    }
- 
-    public void parse(String[] args) throws Exception{
- 
-        CommandLineParser parser = new PosixParser();
-        line = parser.parse(options, args);
-        if(line.hasOption("help")) {
-            throw new Exception("Print help and exit");
-        }
-    }
- 
-    public Integer getInputFile() {
-        return getIntOption(INPUT_FILE);
-    }
- 
- 
-    private Integer getIntOption(String optionName) {
-        Integer val = 0;
-        if( line.hasOption( optionName ) ) {
-            try {
-                val = Integer.parseInt(line.getOptionValue( optionName ));
-                val = val > 0 ? val : -val;
-            } catch (NumberFormatException e) {
-            }
-            return val;
-        } else {
-            return val;
-        }
-    }
- 
-    public void printCliHelp() {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("chat application", "Read following instructions for tuning chat work",
-                options, "Developed by Acestime.Com");
-    }
+	 private void exitHelp(Options opts, int exitValue, String message)
+	 {
+		 if (exitValue == 0)
+			 //System.out.println(message);
+			 log.info(message);
+		 else
+			 log.severe("Failed to parse comand line properties\n" + message);
+			 //System.err.println(message);
+		 
+		 HelpFormatter formater = new HelpFormatter();
+		 formater.printHelp("java org.jaxb.gpxmanipulator.GPXManupulator", opts);
+		 System.exit(exitValue);
+	 }	 
 }
-*/

@@ -2,11 +2,17 @@ package org.jaxb.gpxmanipulator;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // Parser that makes custom changes in GPX.
 public class GPXParser {
-    public void parseGPX(GpxType gpx) {
-
+	private static final Logger log = Logger.getLogger("");
+	
+    public void parseGPX(GpxType gpx) throws Exception
+    {
             // Change creator of GPX, since this program modifies GPX.
             // Preserve original creator at the end of string.
             gpx.getCreator().toString();
@@ -17,18 +23,18 @@ public class GPXParser {
             List<TrkType> trkList = gpx.getTrk();
             for (int i = 0; i < trkList.size(); i++) {
                 TrkType trk = trkList.get(i);
-                System.out.println("Trek name = [" + trk.name + "]");
+                log.finer( "Trek name = [" + trk.name + "]");
                
                 List<TrksegType> segList = trk.getTrkseg();
                 for (int j = 0; j < segList.size(); j++) {
                     TrksegType seg = segList.get(j);
-                    System.out.println("Segment number [" + j + "]");
+                    log.finer( "Segment number [" + j + "]");
                    
                    
                     List<WptType> ptList = seg.getTrkpt();
                     for (int k = 0; k < ptList.size(); k++) {
                         WptType pt = ptList.get(k);
-                        System.out.println(
+                        log.finer( 
                                 "Trek point number [" + k +
                                 "] lat= [" + pt.lat.toString() +
                                 "] lon= [" + pt.lon.toString() +
@@ -47,18 +53,12 @@ public class GPXParser {
                         if (( pt.lat.compareTo(latMin) == 1 ) && ( pt.lat.compareTo(latMax) == -1 )) {
                         	ptList.remove(k);
                             k--;
-                            System.out.println("Point removed");
+                            log.finer( "Point removed");
                         } else {
-                            System.out.println("Point remains in trek");
+                        	log.finer( "Point remains in trek");
                         }
-
                     }
-                    
                 }
             }
-
-
-
-
     }
 }
