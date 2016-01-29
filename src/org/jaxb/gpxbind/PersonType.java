@@ -6,7 +6,7 @@
 //
 
 
-package org.jaxb.gpxmanipulator;
+package org.jaxb.gpxbind;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

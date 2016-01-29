@@ -6,7 +6,7 @@
 //
 
 
-package org.jaxb.gpxmanipulator;
+package org.jaxb.gpxbind;
 
 import java.util.ArrayList;
 import java.util.List;

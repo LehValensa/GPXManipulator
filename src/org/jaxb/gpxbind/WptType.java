@@ -6,7 +6,7 @@
 //
 
 
-package org.jaxb.gpxmanipulator;
+package org.jaxb.gpxbind;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
