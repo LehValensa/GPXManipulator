@@ -1,7 +1,13 @@
 package org.jaxb.gpxmanipulator;
 
 import java.util.logging.Logger;
-import org.apache.commons.cli.*;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
 
 // Handler of options passed via Command Line Interface.
 // Usage example is taken from:
@@ -59,23 +65,9 @@ public class CliHandler
 	    return opts;
       }
 	 
-	 // "Getters" for some command-line options that are used by main() block.
-	 // The rest options are passed to GPX parser and used there directly,
-	 // so no need to define getters for them here. 
-	 public String getInputFile()
-	 {
-		 return cmd.getOptionValue("i");
-	 }
-	 
-	 public String getOutputFile()
-	 {
-		 return cmd.getOptionValue("o");
-	 }
-	 
-	 public boolean isDebugMode()
-	 {
-		 return cmd.hasOption("d");
-	 }
+	 // There are no "Getters" for command-line options.
+	 // Instead, options are passed to GPX parser and used there directly, by option name,
+	 // so no need to define many getters for them here. 
 	 
 	 public void parse()
 	 {

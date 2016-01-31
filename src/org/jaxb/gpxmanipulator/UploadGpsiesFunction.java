@@ -10,7 +10,6 @@ import java.io.PipedOutputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;

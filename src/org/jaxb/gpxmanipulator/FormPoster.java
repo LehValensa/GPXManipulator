@@ -1,12 +1,12 @@
 package org.jaxb.gpxmanipulator;
 
-import java.net.HttpURLConnection;
-import java.net.URLConnection;
-import java.net.URL;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Random;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Random;
 
 /**
  * Taken from the Client HTTP Request class at com.myjavatools.web

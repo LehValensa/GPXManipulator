@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="GPXManipulator.makejar" default="makejar" basedir=".">
+
+	<!-- Name of "main" class -->
+	<property name="project.name" value="GPXManipulator"/>
+	
+	<!-- Source code of the program is here -->
+	<property name="src.dir" value="src"/>
+	
+	<!-- Resulting JAS is going here -->
+	<property name="build.dir" value="build"/>
+	<property name="output.jar" value="${project.name}.jar"/>
+	
+	<!-- Compiled classes are going here -->
+	<property name="bin.dir" value="bin"/>
+	
+	<!-- External libraries (JARs) used and to be "incapsulated" into program -->
+	<property name="jar.common.dir" value="/usr/share/java"/>
+	<property name="jar.common.libs" value="commons-cli.jar,commons-codec.jar"/>
+	
+	<!-- Other files to add into JAR -->
+	<fileset id="other.files" dir=".">
+	  <patternset>
+	    <include name="README.md"/>
+	  	<include name="LICENSE"/>
+	  	<include name="build.xml"/>
+	  </patternset>
+	</fileset>
+	
+	<!-- External libraries in a form of ant's filelist -->
+	<filelist id="jars"
+		dir="${jar.common.dir}"
+		files="${jar.common.libs}"/>
+		
+	<!-- Convert a list of external libs into one string -->
+	<pathconvert targetos="unix" property="mf.classpath" refid="jars" pathsep=";">
+		      <map from="${jar.common.dir}" to="${jar.common.dir}"/>
+	</pathconvert>
+	
+	<!-- Compile the source code -->
+	<target name="compile" depends="make.dirs" description="Compilation target">
+		<mkdir dir="${build.dir}"/>
+		<echo>mf.classpath is [${mf.classpath}]</echo>
+		<javac srcdir="${src.dir}" destdir="${bin.dir}" classpath="${mf.classpath}" debug="on" includeantruntime="false"/>
+	</target>
+	
+	<!-- Create JAR archive and "incapsulate" external JARs into it -->
+	<target name="makejar" depends="compile" description="Make JAR target">
+		<echo>mf.classpath is [${mf.classpath}]</echo>
+		
+		<jar basedir="bin" destfile="${build.dir}/${output.jar}">
+			<!-- Unpack Apache's CLI library classes into JAR -->
+			<archives>
+			    <zips>
+			    	<path path="${mf.classpath}" />
+			    </zips>
+			</archives>
+			
+		    <manifest>
+		    	<!-- Add executable class to manifest -->
+		        <attribute name="Main-Class" value="org.jaxb.gpxmanipulator.${project.name}"/>
+		        <!--<attribute name="Class-Path" value="${mf.classpath}"/> -->
+		    	<attribute name="Built-By" value="Leh Valensa"/>
+		    	<attribute name="Built-Date" value="${TODAY_MY}"/>
+
+		    	<attribute name="Implementation-Title" value="GPX Manipulator"/>
+		    	<attribute name="Implementation-Version" value="${version} ${TODAY_MY}"/>
+		    	<attribute name="Implementation-Vendor" value="LHC"/>
+		    </manifest>
+			
+			<!-- Include source code into JAR -->
+			<fileset dir="${src.dir}" />
+				
+			<!-- Include other files into JAR -->
+			<fileset refid="other.files" />
+			
+		</jar>
+	</target>
+	
+	<!-- Create output dirs for compilation/deployment -->
+	<target name="make.dirs" description="Make some dirs">
+		<mkdir dir="${build.dir}"/>
+		<mkdir dir="${bin.dir}"/>
+	</target>
+	
+	<!-- Clean up compilation/deployment dirs -->
+    <target name="clean" description="Clean up">
+	    <echo>I'm cleaning up.</echo>
+	    <delete dir="${build.dir}"/>
+    	<delete dir="${bin.dir}"/>
+    </target>
+				
+	<tstamp>
+		<format property="TODAY_MY" pattern="yyyyMMdd-HHmmss" />
+	</tstamp>
+
+	<!-- Test program: call it with "help" option -->
+    <target name="test" depends="makejar" description="Make simple test of program run">
+        <echo>"Running GPXManipulator tests ..."</echo>
+        <exec executable="java">
+        	<arg line=" -jar ${build.dir}/${output.jar} -h"/>
+        </exec>
+    </target>
+
+    <target name="test2" depends="makejar" description="Make test with regular program options">
+        <echo>"Running GPXManipulator tests ..."</echo>
+        <exec executable="java">
+        	<arg line=" -jar ${build.dir}/${output.jar}"/>
+        	<arg line=' -i /home/leh/gpx/live/upload_test_nl_input4java.gpx -o /home/leh/gpx/live/upload_test_nl_parsed.gpx --gpsies-launch-browser --track-name="тест GPXManipulator" --gpsies-track-is-public'/>
+        </exec>
+    </target>
+
+    <target name="test3" depends="makejar" description="Test with output to screen">
+        <echo>"Running GPXManipulator tests ..."</echo>
+        <exec executable="java">
+        	<arg line=" -jar ${build.dir}/${output.jar}"/>
+        	<arg line=' -i /home/leh/gpx/live/upload_test_nl_input4java.gpx'/>
+        </exec>
+    </target>
+	
+
+</project>

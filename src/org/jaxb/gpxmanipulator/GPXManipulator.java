@@ -1,16 +1,18 @@
 package org.jaxb.gpxmanipulator;
 
+import org.jaxb.gpxbind.GpxType;
+
 import java.io.File;
-import java.io.PipedOutputStream;
-import java.io.PipedInputStream;
 import java.io.StringWriter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
-import javax.xml.bind.*;
-
-import org.jaxb.gpxbind.GpxType;
-
 import java.util.logging.Logger;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.JAXBIntrospector;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 
 // Main class of GPXManipulator tool.
 public class GPXManipulator {
@@ -35,20 +37,20 @@ public class GPXManipulator {
 		// Read command line arguments
 		CliHandler clh = new CliHandler(args);
 
-		gpxFile = new File(clh.getInputFile());
-		log.info("Config -> Input file is: " + clh.getInputFile());
+		gpxFile = new File(clh.cmd.getOptionValue("input-file"));
+		log.info("Config -> Input file is: " + gpxFile.getName());
 		
-		if (clh.getOutputFile() != null)
-			parsedFile = new File(clh.getOutputFile());
-	
-		log.info("Config -> Output file is: " + clh.getOutputFile());
+		if (clh.cmd.hasOption("output-file")) {
+			parsedFile = new File(clh.cmd.getOptionValue("output-file"));
+			log.info("Config -> Output file is: " + parsedFile.getName());
+		}
 		
-		if (clh.isDebugMode()) {
+		if (clh.cmd.hasOption("d")) {
 	
 	        // Set detailed trace level for debug mode.
 	        log.info("Config -> Debug level is set.");
 			
-			// Set new level for logger 
+			// Set new level for logger, higher than default "INFO".
 	        log.setLevel(Level.FINER);
 
 			// Set new level for default ConsoleHandler too.
@@ -62,13 +64,13 @@ public class GPXManipulator {
 		// Read XML file and put its content into Java objects.  
         try
         {
-	            jc = JAXBContext.newInstance("org.jaxb.gpxmanipulator");
+        	jc = JAXBContext.newInstance("org.jaxb.gpxbind");
 
-	            jaxbUnmarshaller = jc.createUnmarshaller();
-	            jaxbMarshaller = jc.createMarshaller();
+            jaxbUnmarshaller = jc.createUnmarshaller();
+            jaxbMarshaller = jc.createMarshaller();
 	     
-	            // Unmarshal GpxType    
-	            gpx = (GpxType) JAXBIntrospector.getValue( jaxbUnmarshaller.unmarshal(gpxFile) );
+            // Unmarshal GpxType    
+            gpx = (GpxType) JAXBIntrospector.getValue( jaxbUnmarshaller.unmarshal(gpxFile) );
 	            
 	    }
         catch (JAXBException e)
@@ -116,6 +118,7 @@ public class GPXManipulator {
         if ( clh.cmd.getOptionValue("gpsies-username") != null
           || clh.cmd.getOptionValue("gpsies-authenticate-hash") != null) {
 	        
+        	log.info("Upload to GPSies");
 	        StringWriter gpxRaw = new StringWriter();
 	        try {
 		        jaxbMarshaller.marshal(gpx, gpxRaw);
@@ -134,6 +137,7 @@ public class GPXManipulator {
 	        }
         }
         
+        log.info("All done");
         System.exit(ExitCode.EXIT_OK.getId());
 	}
 	

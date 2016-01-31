@@ -1,14 +1,15 @@
 package org.jaxb.gpxmanipulator;
 
+import org.jaxb.gpxbind.GpxType;
+import org.jaxb.gpxbind.TrkType;
+import org.jaxb.gpxbind.TrksegType;
+import org.jaxb.gpxbind.WptType;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
-import org.jaxb.gpxbind.GpxType;
-import org.jaxb.gpxbind.TrkType;
-import org.jaxb.gpxbind.TrksegType;
-import org.jaxb.gpxbind.WptType;
 
 // Parser that makes custom changes in GPX.
 public class GPXParser {
