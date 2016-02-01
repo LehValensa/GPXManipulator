@@ -22,6 +22,8 @@ public class GPXParser {
 	public static BigDecimal hotSpotLonMax = null;
 	public static BigDecimal hotSpotLonMin = null;
 	
+	public static Integer pointsRemains = 0;	// Total count of trackpoints that remain in track after HotSpot processing.
+	
 	// Make changes in GPX.
     public void parseGPX(GpxType gpx, CommandLine cmd) throws Exception
     {
@@ -44,6 +46,7 @@ public class GPXParser {
             // Go through all treckpoints in GPX file
             // and make necessary manipulations with them.
             log.info("Read treckpoints");
+            pointsRemains=0;
             
             // Iterate over tracks
             List<TrkType> trkList = gpx.getTrk();
@@ -82,7 +85,7 @@ public class GPXParser {
                         {
                         	// If Trackpoint is within HotSpot rectangle, then delete it.
 	                        if ((( pt.getLat().compareTo(hotSpotLatMin) == 1 ) && ( pt.getLat().compareTo(hotSpotLatMax) == -1 ))
-	                        	||
+	                        	&&
 	                        	(( pt.getLon().compareTo(hotSpotLonMin) == 1 ) && ( pt.getLon().compareTo(hotSpotLonMax) == -1 )))
 	                        {
 	                        	ptList.remove(k);
@@ -92,6 +95,8 @@ public class GPXParser {
                         }
                         
                     }
+                    
+                    pointsRemains += ptList.size();
                 }
             }
     }
@@ -120,5 +125,9 @@ public class GPXParser {
 			// HotSpot is not defined
 			return;
 		}
+	}
+	
+	public Integer getNumPoints() {
+		return pointsRemains;
 	}
 }

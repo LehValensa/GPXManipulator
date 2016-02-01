@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="GPXManipulator.makejar" default="makejar" basedir=".">
+<project name="GPXManipulator" default="makejar" basedir=".">
 
+	<!-- DEFINITIONS -->
+	
 	<!-- Name of "main" class -->
-	<property name="project.name" value="GPXManipulator"/>
+	<property name="project.name" value="${ant.project.name}"/>
 	
 	<!-- Source code of the program is here -->
 	<property name="src.dir" value="src"/>
@@ -10,6 +12,7 @@
 	<!-- Resulting JAS is going here -->
 	<property name="build.dir" value="build"/>
 	<property name="output.jar" value="${project.name}.jar"/>
+	<property name="deploy.dir" value="${user.home}/bin/"/>
 	
 	<!-- Compiled classes are going here -->
 	<property name="bin.dir" value="bin"/>
@@ -27,15 +30,13 @@
 	  </patternset>
 	</fileset>
 	
-	<!-- External libraries in a form of ant's filelist -->
-	<filelist id="jars"
-		dir="${jar.common.dir}"
-		files="${jar.common.libs}"/>
-		
-	<!-- Convert a list of external libs into one string -->
-	<pathconvert targetos="unix" property="mf.classpath" refid="jars" pathsep=";">
-		      <map from="${jar.common.dir}" to="${jar.common.dir}"/>
-	</pathconvert>
+	<!-- Other scripts -->
+	<property name="scripts.dir" value="scripts"/>
+	<property name="script1" value="gps_sync.sh"/>
+	<property name="script2" value="gpx_get_gpsies_auth_hash.sh"/>
+	<property name="testgpx.dir" value="${user.home}/gpx/live"/>
+	
+	<!-- MAIN WORK -->
 	
 	<!-- Compile the source code -->
 	<target name="compile" depends="make.dirs" description="Compilation target">
@@ -75,8 +76,37 @@
 			<fileset refid="other.files" />
 			
 		</jar>
+		
+		<chmod file="${build.dir}/${output.jar}" perm="a+rx"/>
+		
 	</target>
 	
+	<!-- Deploy JAR -->
+	<target name="deploy" depends="makejar" description="Deploy the program">
+		<echo>Deploy JAR to [${deploy.dir}]</echo>
+		
+		<!-- Copy JAR -->
+		<copy file="${build.dir}/${output.jar}" todir="${deploy.dir}"/>
+		<chmod file="${deploy.dir}/${output.jar}" perm="a+rx"/>
+		
+		<!-- Copy gps_sync.sh script-->
+		<copy file="${scripts.dir}/${script1}" todir="${deploy.dir}"/>
+		<chmod file="${deploy.dir}/${script1}" perm="a+rx"/>
+
+	</target>
+	
+	<!-- HELPERS -->
+
+	<!-- External libraries in a form of ant's filelist -->
+	<filelist id="jars"
+		dir="${jar.common.dir}"
+		files="${jar.common.libs}"/>
+		
+	<!-- Convert a list of external libs into one string -->
+	<pathconvert targetos="unix" property="mf.classpath" refid="jars" pathsep=";">
+		      <map from="${jar.common.dir}" to="${jar.common.dir}"/>
+	</pathconvert>
+
 	<!-- Create output dirs for compilation/deployment -->
 	<target name="make.dirs" description="Make some dirs">
 		<mkdir dir="${build.dir}"/>
@@ -89,34 +119,130 @@
 	    <delete dir="${build.dir}"/>
     	<delete dir="${bin.dir}"/>
     </target>
-				
+		
+	<!-- Get current date/time -->
 	<tstamp>
 		<format property="TODAY_MY" pattern="yyyyMMdd-HHmmss" />
 	</tstamp>
 
+	<!-- TESTS -->
+	
 	<!-- Test program: call it with "help" option -->
-    <target name="test" depends="makejar" description="Make simple test of program run">
-        <echo>"Running GPXManipulator tests ..."</echo>
+    <target name="test1" depends="deploy" description="Make simple test of program run">
+        <echo>"Test simple ..."</echo>
         <exec executable="java">
         	<arg line=" -jar ${build.dir}/${output.jar} -h"/>
         </exec>
     </target>
 
-    <target name="test2" depends="makejar" description="Make test with regular program options">
-        <echo>"Running GPXManipulator tests ..."</echo>
+    <target name="test2" depends="deploy" description="Make test with regular program options">
+        <echo>"Test regular run ..."</echo>
         <exec executable="java">
         	<arg line=" -jar ${build.dir}/${output.jar}"/>
-        	<arg line=' -i /home/leh/gpx/live/upload_test_nl_input4java.gpx -o /home/leh/gpx/live/upload_test_nl_parsed.gpx --gpsies-launch-browser --track-name="тест GPXManipulator" --gpsies-track-is-public'/>
+        	<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
+        	<arg line=' --gpsies-launch-browser --track-name="тест GPXManipulator" --gpsies-track-is-public'/>
         </exec>
     </target>
 
-    <target name="test3" depends="makejar" description="Test with output to screen">
-        <echo>"Running GPXManipulator tests ..."</echo>
+    <target name="test3" depends="deploy" description="Test with output to screen">
+        <echo>"Test output to screen ..."</echo>
         <exec executable="java">
         	<arg line=" -jar ${build.dir}/${output.jar}"/>
-        	<arg line=' -i /home/leh/gpx/live/upload_test_nl_input4java.gpx'/>
+        	<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx"/>
+        </exec>
+    </target>
+
+    <target name="test4" depends="deploy" description="Make test with HotSpot">
+        <echo>"Test HotSpot ..."</echo>
+        <exec executable="java">
+        	<arg line=" -jar ${build.dir}/${output.jar}"/>
+        	<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
+        	<arg line=" --hotspot-lat-min=50.4560 --hotspot-lat-max=50.4768"/>
+        	<arg line=" --hotspot-lon-min=30.3276 --hotspot-lon-max=30.3829"/>
+        	<arg line=" -d"/>
+        </exec>
+    </target>
+
+
+	<!-- Login to GPSies automatically, using stored authentication hash -->
+	<target name="test5" depends="deploy" description="Test with upload to GPSies using hash">
+		
+		<exec executable="${deploy.dir}/${script2}" outputproperty="output.hash"/>
+		<echo>Authentication hash is [${output.hash}]</echo>
+			
+		<exec executable="${build.dir}/${output.jar}">
+			<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
+    		<arg line=' --gpsies-launch-browser \
+	    		--gpsies-activity="biking" \
+	    		--gpsies-description="MyDescription" \
+	    		--preserve-creator \
+	    		--track-name="тест MyTestTrack" \
+	    		--gpsies-username="leh_valensa" \
+	    		-d \' />
+    		<arg line=" --gpsies-authenticate-hash=${output.hash} " />
+			
+    	</exec>
+	</target>
+
+	<!-- Login to GPSies using supplied username and password. -->
+    <target name="test55" depends="deploy" description="Test with upload to GPSies using username/password">
+        <echo>"Upload to GPSies ..."</echo>
+    	
+    	<input message="Please enter username:" addproperty="the.user" />
+    	
+    	<input message="secure-input:" addproperty="the.password">
+    	    <handler classname="org.apache.tools.ant.input.SecureInputHandler" />
+    	</input>
+    	
+    	
+        <exec executable="${build.dir}/${output.jar}">
+        	<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
+        	<arg line='	--gpsies-launch-browser \
+        		--gpsies-activity="biking" \
+        		--gpsies-description="MyDescription" \
+        		--preserve-creator \
+        		--track-name="тест MyTestTrack" \
+        		--gpsies-username="leh_valensa" \
+        		-d \' />
+        	<arg line=" --gpsies-username=${the.user} --gpsies-password=${the.password} " />
+        </exec>
+    </target>
+
+    <target name="test8" depends="deploy" description="Empty track">
+        <echo>"Try to upload empty track to GPSies..."</echo>
+		<exec executable="${deploy.dir}/${script2}" outputproperty="output.hash"/>
+
+		<exec executable="${build.dir}/${output.jar}">
+			<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
+        	<arg line=" --hotspot-lat-min=40.00 --hotspot-lat-max=60.00"/>
+        	<arg line=" --hotspot-lon-min=20.00 --hotspot-lon-max=40.00"/>
+    		<arg line=' --gpsies-launch-browser \
+	    		--gpsies-activity="biking" \
+	    		--gpsies-description="MyDescription" \
+	    		--preserve-creator \
+	    		--track-name="EmptyTrack" \
+	    		--gpsies-username="leh_valensa" \
+	    		-d \' />
+    		<arg line=" --gpsies-authenticate-hash=${output.hash} " />
+			
+    	</exec>
+
+    </target>
+	
+	<!-- Run the whole synchronization chain-->
+    <target name="test6" depends="deploy" description="Run the whole synchronization chain">
+        <echo>"Running gps_sync.sh ..."</echo>
+        <exec executable="${deploy.dir}/${script1}">
+        	<arg line=" 1 -d" />
+        </exec>
+    </target>
+
+	<!-- Take 2'nd track from Archive, instead of Current track -->
+    <target name="test7" depends="deploy" description="Run the whole synchronization chain">
+        <echo>"Running gps_sync.sh ..."</echo>
+        <exec executable="${deploy.dir}/${script1}">
+        	<arg line=" -2 -d" />
         </exec>
     </target>
 	
-
 </project>

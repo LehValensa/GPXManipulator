@@ -118,6 +118,11 @@ public class GPXManipulator {
         if ( clh.cmd.getOptionValue("gpsies-username") != null
           || clh.cmd.getOptionValue("gpsies-authenticate-hash") != null) {
 	        
+        	if (parser.getNumPoints() == 0) {
+        		log.info("No points in output track. GPSies does not accept empty track.");
+        		System.exit(ExitCode.EXIT_NO_POINTS.getId());
+        	}
+        	
         	log.info("Upload to GPSies");
 	        StringWriter gpxRaw = new StringWriter();
 	        try {
