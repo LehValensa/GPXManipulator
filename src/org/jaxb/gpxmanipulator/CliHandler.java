@@ -28,6 +28,7 @@ public class CliHandler
 		  this.parse();
 	 }
 	 
+	 // Define command-line options here.
 	 private static Options createOptions()
      {
 	    Options opts = new Options();
@@ -69,6 +70,8 @@ public class CliHandler
 	 // Instead, options are passed to GPX parser and used there directly, by option name,
 	 // so no need to define many getters for them here. 
 	 
+	 // Parse options passed by user in command line.
+	 // Show help if options misused.
 	 public void parse()
 	 {
 		 try
@@ -91,6 +94,6 @@ public class CliHandler
 		 
 		 HelpFormatter formater = new HelpFormatter();
 		 formater.printHelp("java org.jaxb.gpxmanipulator.GPXManupulator [options]\nwhere options are:", opts);
-		 System.exit(exitValue);
+		 ExitCode.exitNolog(exitValue);
 	 }	 
 }

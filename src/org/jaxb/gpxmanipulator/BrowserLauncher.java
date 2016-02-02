@@ -3,6 +3,7 @@ package org.jaxb.gpxmanipulator;
 import java.net.URI;
 import java.util.logging.Logger;
 
+// Leh: this class is taken from Internet (code of gpsprune).
 /**
  * Class to launch a browser window to show an external map
  * Some code and ideas taken from BareBonesBrowserLaunch at centerkey.com

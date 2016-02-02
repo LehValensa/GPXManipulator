@@ -92,8 +92,12 @@ while [ $all_done -eq 0 ]; do
     	
     rc=$?
     if [ $rc -ne 0 ]; then
-    	echo "ERROR: running GPXManipulator. rc=[$rc]"
-    	exit $rc;
+    	if [ $rc -eq 3 ]; then
+    		echo "WARNING: no trackpoints in track"
+    	else
+    		echo "ERROR: running GPXManipulator. rc=[$rc]"
+    		exit $rc
+    	fi
     fi 
     
     

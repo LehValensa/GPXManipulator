@@ -237,8 +237,16 @@
         </exec>
     </target>
 
+	<!-- Take 1'st track from Archive, instead of Current track -->
+    <target name="test66" depends="deploy" description="Run the whole synchronization chain">
+        <echo>"Running gps_sync.sh ..."</echo>
+        <exec executable="${deploy.dir}/${script1}">
+        	<arg line=" -1 -d" />
+        </exec>
+    </target>
+
 	<!-- Take 2'nd track from Archive, instead of Current track -->
-    <target name="test7" depends="deploy" description="Run the whole synchronization chain">
+    <target name="test666" depends="deploy" description="Run the whole synchronization chain">
         <echo>"Running gps_sync.sh ..."</echo>
         <exec executable="${deploy.dir}/${script1}">
         	<arg line=" -2 -d" />

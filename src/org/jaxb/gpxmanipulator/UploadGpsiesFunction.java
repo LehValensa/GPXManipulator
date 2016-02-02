@@ -18,7 +18,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Function to upload track information up to Gpsies.com
- * Template is taken from gpsprune software and then reduced for batch application.
+ * Leh: template is taken from gpsprune software and then reduced for batch application.
  */
 public class UploadGpsiesFunction
 {

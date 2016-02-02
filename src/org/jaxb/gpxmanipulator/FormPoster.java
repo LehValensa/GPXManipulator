@@ -8,6 +8,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Random;
 
+//Leh: this class is taken from Internet (code of gpsprune).
+
 /**
  * Taken from the Client HTTP Request class at com.myjavatools.web
  * and subsequently simplified and modified

@@ -16,13 +16,14 @@ import javax.xml.bind.Unmarshaller;
 
 // Main class of GPXManipulator tool.
 public class GPXManipulator {
+	private static final Logger log = Logger.getLogger("");
+	
 	public static GpxType gpx;					// root object that contains whole GPX from XML file.
 	public static JAXBContext jc;
 	public static Unmarshaller jaxbUnmarshaller;
 	public static Marshaller jaxbMarshaller;
 	public static File gpxFile;					// input GPX file
 	public static File parsedFile = null;		// output GPX file
-	private static final Logger log = Logger.getLogger("");
 	private static GPXParser parser =  new GPXParser();
 
 	public static void main(String[] args) throws Exception {
@@ -75,7 +76,7 @@ public class GPXManipulator {
 	    }
         catch (JAXBException e)
         {
-        	exitLog("Error: unable to read GPX file.", e);
+        	ExitCode.exitLog("Error: unable to read GPX file.", e);
         }
         
         
@@ -87,7 +88,7 @@ public class GPXManipulator {
         }
         catch (Exception e)
         {
-        	exitLog("Error: unable to parse GPX", e);
+        	ExitCode.exitLog("Error: unable to parse GPX", e);
         }
 	      
 	    // Compose back changed XML and write it into the output file.
@@ -111,7 +112,7 @@ public class GPXManipulator {
 	    }
 	    catch (JAXBException e)
 	    {
-	    	exitLog("Error: unable to write GPX file", e);
+	    	ExitCode.exitLog("Error: unable to write GPX file", e);
         }
 	    
         // Upload track to gpsies.com
@@ -138,18 +139,12 @@ public class GPXManipulator {
 		        gpsies_uploader.startUpload(gpxRaw, gpsiesFilename, clh.cmd);
 		        
 	        } catch (Exception e) {
-	          exitLog("Error: uploading to GPSies", e);
+	          ExitCode.exitLog("Error: uploading to GPSies", e);
 	        }
         }
         
-        log.info("All done");
-        System.exit(ExitCode.EXIT_OK.getId());
+        ExitCode.exitLog("All done");
 	}
 	
-	private static void exitLog(String message, Exception e)
-	{
-    	log.log(Level.SEVERE, message + " : " +e.getLocalizedMessage());
-        System.exit(ExitCode.EXIT_RUNTIME_ERROR.getId());
-	}
 
 }
