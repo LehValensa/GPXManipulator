@@ -39,7 +39,7 @@
 	<!-- MAIN WORK -->
 	
 	<!-- Compile the source code -->
-	<target name="compile" depends="make.dirs" description="Compilation target">
+	<target name="compile" depends="make.dirs,patchbind" description="Compilation target">
 		<mkdir dir="${build.dir}"/>
 		<echo>mf.classpath is [${mf.classpath}]</echo>
 		<javac srcdir="${src.dir}" destdir="${bin.dir}" classpath="${mf.classpath}" debug="on" includeantruntime="false"/>
@@ -125,6 +125,21 @@
 		<format property="TODAY_MY" pattern="yyyyMMdd-HHmmss" />
 	</tstamp>
 
+	<!-- Generate XML bindings to Java objects -->
+	<target name="genbind" depends="make.dirs" description="Generate XML bindings">
+	    <exec executable="xjc">
+	    	<arg line=" -d ${src.dir} -p org.jaxb.gpxbind ${src.dir}/gpx.xsd"/>
+	    </exec>
+		
+	</target>
+	
+	<!-- Set root element in XML bindings-->
+	<target name="patchbind" depends="genbind" description="Set root element in XML bindings">
+		<exec executable="patch">
+				<arg line=" --verbose ${src.dir}/org/jaxb/gpxbind/GpxType.java ${src.dir}/GpxType.patch"/>
+		</exec>
+	</target>
+
 	<!-- TESTS -->
 	
 	<!-- Test program: call it with "help" option -->
@@ -172,6 +187,8 @@
 			
 		<exec executable="${build.dir}/${output.jar}">
 			<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
+			<arg line=" --hotspot-lat-min=50.4560 --hotspot-lat-max=50.4768"/>
+			<arg line=" --hotspot-lon-min=30.3276 --hotspot-lon-max=30.3829"/>
     		<arg line=' --gpsies-launch-browser \
 	    		--gpsies-activity="biking" \
 	    		--gpsies-description="MyDescription" \
