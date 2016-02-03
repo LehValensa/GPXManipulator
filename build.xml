@@ -39,7 +39,7 @@
 	<!-- MAIN WORK -->
 	
 	<!-- Compile the source code -->
-	<target name="compile" depends="make.dirs,patchbind" description="Compilation target">
+	<target name="compile" depends="make.dirs" description="Compilation target">
 		<mkdir dir="${build.dir}"/>
 		<echo>mf.classpath is [${mf.classpath}]</echo>
 		<javac srcdir="${src.dir}" destdir="${bin.dir}" classpath="${mf.classpath}" debug="on" includeantruntime="false"/>

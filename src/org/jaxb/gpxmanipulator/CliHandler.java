@@ -93,7 +93,7 @@ public class CliHandler
 			 log.severe("Failed to parse comand line properties\n" + message);
 		 
 		 HelpFormatter formater = new HelpFormatter();
-		 formater.printHelp("java org.jaxb.gpxmanipulator.GPXManupulator [options]\nwhere options are:", opts);
+		 formater.printHelp("java -jar GPXManupulator.jar [options]\nwhere options are:", opts);
 		 ExitCode.exitNolog(exitValue);
 	 }	 
 }
