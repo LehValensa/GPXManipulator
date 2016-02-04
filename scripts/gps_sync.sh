@@ -5,14 +5,26 @@
 # 2 - current track from garmin to local dir. Just for a case, if passed track is not archived yet. 
 # 3 - new tracks to be uploaded to garmin from local dir.
 
-GARMIN_MOUNT_POINT="/media/${USER}/GARMIN"	# Directory where OS will automatically mount garmin device.
+if [ "`uname -o`" == "Cygwin" ]; then
+	GARMIN_MOUNT_POINT="/cygdrive/f" # Directory where OS will automatically mount garmin device.
+	BIN_PATH="/cygdrive/c/utils"				 # Path where GPXManipulator.jar can be found.
+	#LOCAL_GPX_BASE="/cygwin/home/${USER}/gpx/"	 # The database of all tracks.
+	LOCAL_GPX_BASE="/cygdrive/c/gpx/"
+	LOCAL_GPX_BASE_WIN="/gpx/"
+else
+	GARMIN_MOUNT_POINT="/media/${USER}/GARMIN"
+	BIN_PATH="${HOME}/bin"
+	LOCAL_GPX_BASE="${HOME}/gpx/"
+	LOCAL_GPX_BASE_WIN="${LOCAL_GPX_BASE}"
+fi;
+
 SLEEP_TIME=1 								# Seconds to sleep waiting for garmin to be mounted.
-LOCAL_GPX_BASE="${HOME}/gpx/"				# The database of all tracks.
+
 LOCAL_DOWNLOAD_DIR="${HOME}/Downloads/"		# Take recent track from here and copy to garmin.
 WAIT_FOR_USER_INPUT=1						# Wait for user to press Enter key after job is done,
 											# so user can read previous messages.
 DEBUG=0										# Debug mode: do not unmount garmin
-CURRENT=1									# 1 - get Current.gpx track. -1 - get last GPX from Archive, -2 - get prev. GPX, and so on. 
+CURRENT=1									# 1 - get Current.gpx track. -1 - get last GPX from Archive, -2 - get prev. GPX, and so on.
 
 # throw error message and exit with non-zero exit code
 function die {
@@ -24,6 +36,12 @@ function die {
 # Read command line parameters, if any
 [ -n "$1" ] && CURRENT="$1"
 [ "$2" == "-d" ] && DEBUG=1
+
+cd $BIN_PATH
+if [ $? -ne 0 ]; then
+	echo "ERROR: unable to change dir to [${BIN_PATH}]"
+	exit 1
+fi
 
 # check if garmin is mounted or not
 garmin_is_mounted=`mount | grep ${GARMIN_MOUNT_POINT}`
@@ -66,21 +84,40 @@ while [ $all_done -eq 0 ]; do
     
     if [ $CURRENT -eq 1 ]; then
     	# Take current track
-    	input_track_name="${LOCAL_GPX_BASE}/Garmin/GPX/Current/Current.gpx"
+    	input_track_name="${LOCAL_GPX_BASE_WIN}/Garmin/GPX/Current/Current.gpx"
     	
     else
     	# Take track from archive
-    	input_track_name="${LOCAL_GPX_BASE}/Garmin/GPX/Archive/`ls -tr ${LOCAL_GPX_BASE}/Garmin/GPX/Archive/ | tail ${CURRENT} | head -1`"
+    	input_track_name="${LOCAL_GPX_BASE_WIN}/Garmin/GPX/Archive/`ls -tr ${LOCAL_GPX_BASE}/Garmin/GPX/Archive/ | tail ${CURRENT} | head -1`"
     fi
     
     curdate=`date +%Y%m%d%H%M%S`
-    parsed_track_name="Track_${curdate}.gpx"
-    auth_hash=`gpx_get_gpsies_auth_hash.sh`
+    parsed_track_name="Track_${curdate}.gpx"		# Name of track that will be shown in GPSies.
+    auth_hash=`bash gpx_get_gpsies_auth_hash.sh`	# Hashed username+password for GPSies, stored externally
+    if [ -z "${auth_hash}" ]; then
+    	echo "ERROR: no Authentication Hash specified"
+    	exit 4
+    fi
+    
+    proxyUser=`bash gpx_get_proxy_user.sh`;			# Username for proxy, stored externally
+	proxyPassword=`bash gpx_get_proxy_password.sh`;	# Password for proxy, stored externally
+	if [ -n "${proxyUser}" ]; then
+		if [ -n "${proxyPassword}" ]; then
+			proxyAuthParam="-Dhttp.proxyUser=${proxyUser} -Dhttp.proxyPassword=${proxyPassword}"
+		else
+			echo "ERROR: no proxy password specified"
+			exit 4
+		fi
+	else
+		proxyAuthParam=""
+	fi;
+	
+    [ ${DEBUG} -eq 1 ] && echo "auth_hash=[${auth_hash}] proxyAuthParam=[${proxyAuthParam}]";
     [ ${DEBUG} -eq 1 ] && debug_option="-d"
-    echo "Run GPXManipulator. input=[${input_track_name}] output=[${parsed_track_name}] auth_hash=[${auth_hash}]"
-    	
-    GPXManipulator.jar \
-    		$debug_option -i "${input_track_name}" -o "${LOCAL_GPX_BASE}/live/${parsed_track_name}" \
+    echo "Run GPXManipulator. input=[${input_track_name}] output=[${parsed_track_name}]"
+
+	java -Djava.net.useSystemProxies=true ${proxyAuthParam} -cp . -jar GPXManipulator.jar \
+    		$debug_option -i "${input_track_name}" -o "${LOCAL_GPX_BASE_WIN}/live/${parsed_track_name}" \
     		--gpsies-launch-browser \
         	--gpsies-activity="biking" \
         	--gpsies-description="MyDescription" \

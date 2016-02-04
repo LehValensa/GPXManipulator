@@ -3,18 +3,23 @@ package org.jaxb.gpxmanipulator;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.StringWriter;
+import java.net.Authenticator;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
+
 
 /**
  * Function to upload track information up to Gpsies.com
@@ -34,7 +39,35 @@ public class UploadGpsiesFunction
 	
 	// default activity, if none specified
 	private static final String DEF_ACTIVITY = ACTIVITY_KEYS[3];
-
+	
+	public static String proxyAuthUser;
+	public static String proxyAuthPassword;
+	
+	
+	// Convert input stream to string. For debugging purposes
+	/*
+	@SuppressWarnings("resource")
+	public static String getWebPageToString(String url) {
+		java.util.Scanner s = null;
+		String result = null;
+		
+		try {
+			URL server = new URL(url);
+			HttpURLConnection connection = (
+				    HttpURLConnection)server.openConnection();
+			connection.connect();
+			InputStream is = connection.getInputStream();
+			s = new java.util.Scanner(is).useDelimiter("\\A");
+			result = s.hasNext() ? s.next() : "";
+		} catch (MalformedURLException e) {}
+		  catch (IOException ioe) {}
+		finally {
+			s.close();
+		}
+		return result;
+	}
+	*/
+	
 	/**
 	 * Start the upload process (require separate thread?)
 	 * @param gpx 
@@ -42,11 +75,37 @@ public class UploadGpsiesFunction
 	public void startUpload(final StringWriter gpxRaw, String _filename, CommandLine cmd) throws Exception
 	{
 		BufferedReader reader = null;
-				
+			
 		try
 		{
-			// fill in the form, add GPX file and submit the form
+			// Setup proxy authentication
+			proxyAuthUser = System.getProperty("http.proxyUser");
+			proxyAuthPassword = System.getProperty("http.proxyPassword");
+			log.fine("proxyUser=[" + proxyAuthUser + "] proxyPassword=[" + proxyAuthPassword + "]");
+			
+			if (proxyAuthUser != null && proxyAuthUser != "") {
+			    Authenticator.setDefault(new Authenticator() {
+	                @Override
+	                protected PasswordAuthentication
+	                getPasswordAuthentication() {
+	                    //respond only to proxy auth requests
+	                    if (getRequestorType().equals(RequestorType.PROXY)) {
+	                        return new PasswordAuthentication(
+	                        		proxyAuthUser,
+	                                proxyAuthPassword.toCharArray());
+	                    } else {
+	                        return null;
+	                    }
+	                }
+			    });
+
+			}
+			
+			// Establish connection to GPSies.
 			FormPoster poster = new FormPoster(new URL(GPSIES_URL));
+			log.fine("Connection to GPSies established");
+			
+			// fill in the form, add GPX file and submit the form
 			poster.setParameter("device", "Prune"); // use default device name inherited from gpsprune
 			
 			// Use either username/password or authentication hash for login to GPSies.
@@ -102,8 +161,10 @@ public class UploadGpsiesFunction
 			int response = poster.getResponseCode();
 			reader = new BufferedReader(new InputStreamReader(answer));
 			String line = reader.readLine();
+		    
 			// Try to extract gpsies page url from the returned message
 			String pageUrl = null;
+			
 			if (response == 200 && line.substring(0, 2).toUpperCase().equals("OK"))
 			{
 				final int bracketPos = line.indexOf('[');

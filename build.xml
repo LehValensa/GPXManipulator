@@ -9,16 +9,25 @@
 	<!-- Source code of the program is here -->
 	<property name="src.dir" value="src"/>
 	
-	<!-- Resulting JAS is going here -->
+	<!-- Resulting JAR is going here -->
 	<property name="build.dir" value="build"/>
 	<property name="output.jar" value="${project.name}.jar"/>
-	<property name="deploy.dir" value="${user.home}/bin/"/>
+
+	<!-- Resulting JAR and scripts are deployed here -->
+	<!-- (Set PATH variable to deploy.dir in your OS!) -->
+	<condition property="deploy.dir" value="/utils" else="${user.home}/bin/">
+		   <os family="windows"/>
+	</condition>
 	
 	<!-- Compiled classes are going here -->
 	<property name="bin.dir" value="bin"/>
 	
 	<!-- External libraries (JARs) used and to be "incapsulated" into program -->
-	<property name="jar.common.dir" value="/usr/share/java"/>
+	<condition property="jar.common.dir" value="/src/java/extlibs" else="/usr/share/java">
+	   <os family="windows"/>
+	</condition>
+	
+	<!-- <property name="jar.common.dir" value="/usr/share/java"/> -->
 	<property name="jar.common.libs" value="commons-cli.jar,commons-codec.jar"/>
 	
 	<!-- Other files to add into JAR -->
@@ -153,8 +162,8 @@
     <target name="test2" depends="deploy" description="Make test with regular program options">
         <echo>"Test regular run ..."</echo>
         <exec executable="java">
-        	<arg line=" -jar ${build.dir}/${output.jar}"/>
-        	<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
+        	<arg line=' -jar ${build.dir}/${output.jar}'/>
+        	<arg line=' -i "${testgpx.dir}/upload_test_nl_input4java.gpx" -o "${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"'/>
         	<arg line=' --gpsies-launch-browser --track-name="тест GPXManipulator" --gpsies-track-is-public'/>
         </exec>
     </target>
@@ -162,19 +171,19 @@
     <target name="test3" depends="deploy" description="Test with output to screen">
         <echo>"Test output to screen ..."</echo>
         <exec executable="java">
-        	<arg line=" -jar ${build.dir}/${output.jar}"/>
-        	<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx"/>
+        	<arg line=' -jar ${build.dir}/${output.jar}'/>
+        	<arg line=' -i ${testgpx.dir}/upload_test_nl_input4java.gpx'/>
         </exec>
     </target>
 
     <target name="test4" depends="deploy" description="Make test with HotSpot">
         <echo>"Test HotSpot ..."</echo>
         <exec executable="java">
-        	<arg line=" -jar ${build.dir}/${output.jar}"/>
-        	<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
-        	<arg line=" --hotspot-lat-min=50.4560 --hotspot-lat-max=50.4768"/>
-        	<arg line=" --hotspot-lon-min=30.3276 --hotspot-lon-max=30.3829"/>
-        	<arg line=" -d"/>
+        	<arg line=' -jar ${build.dir}/${output.jar}'/>
+        	<arg line=' -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx'/>
+        	<arg line=' --hotspot-lat-min=50.4560 --hotspot-lat-max=50.4768'/>
+        	<arg line=' --hotspot-lon-min=30.3276 --hotspot-lon-max=30.3829'/>
+        	<arg line=' -d'/>
         </exec>
     </target>
 
@@ -186,9 +195,9 @@
 		<echo>Authentication hash is [${output.hash}]</echo>
 			
 		<exec executable="${build.dir}/${output.jar}">
-			<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
-			<arg line=" --hotspot-lat-min=50.4560 --hotspot-lat-max=50.4768"/>
-			<arg line=" --hotspot-lon-min=30.3276 --hotspot-lon-max=30.3829"/>
+			<arg line=' -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx'/>
+			<arg line=' --hotspot-lat-min=50.4560 --hotspot-lat-max=50.4768'/>
+			<arg line=' --hotspot-lon-min=30.3276 --hotspot-lon-max=30.3829'/>
     		<arg line=' --gpsies-launch-browser \
 	    		--gpsies-activity="biking" \
 	    		--gpsies-description="MyDescription" \
@@ -213,7 +222,7 @@
     	
     	
         <exec executable="${build.dir}/${output.jar}">
-        	<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
+        	<arg line=' -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx'/>
         	<arg line='	--gpsies-launch-browser \
         		--gpsies-activity="biking" \
         		--gpsies-description="MyDescription" \
@@ -227,12 +236,12 @@
 
     <target name="test8" depends="deploy" description="Empty track">
         <echo>"Try to upload empty track to GPSies..."</echo>
-		<exec executable="${deploy.dir}/${script2}" outputproperty="output.hash"/>
+		<exec executable='${deploy.dir}/${script2}' outputproperty="output.hash"/>
 
-		<exec executable="${build.dir}/${output.jar}">
-			<arg line=" -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx"/>
-        	<arg line=" --hotspot-lat-min=40.00 --hotspot-lat-max=60.00"/>
-        	<arg line=" --hotspot-lon-min=20.00 --hotspot-lon-max=40.00"/>
+		<exec executable='${build.dir}/${output.jar}'>
+			<arg line=' -i ${testgpx.dir}/upload_test_nl_input4java.gpx -o ${testgpx.dir}/upload_test_nl_input4java_parsed.gpx'/>
+        	<arg line=' --hotspot-lat-min=40.00 --hotspot-lat-max=60.00'/>
+        	<arg line=' --hotspot-lon-min=20.00 --hotspot-lon-max=40.00'/>
     		<arg line=' --gpsies-launch-browser \
 	    		--gpsies-activity="biking" \
 	    		--gpsies-description="MyDescription" \
@@ -249,15 +258,17 @@
 	<!-- Run the whole synchronization chain-->
     <target name="test6" depends="deploy" description="Run the whole synchronization chain">
         <echo>"Running gps_sync.sh ..."</echo>
-        <exec executable="${deploy.dir}/${script1}">
-        	<arg line=" 1 -d" />
+        <exec executable="bash">
+        	<arg line='"${script1}"'/>
+        	<arg line=' 1 -d' />
         </exec>
     </target>
 
 	<!-- Take 1'st track from Archive, instead of Current track -->
     <target name="test66" depends="deploy" description="Run the whole synchronization chain">
         <echo>"Running gps_sync.sh ..."</echo>
-        <exec executable="${deploy.dir}/${script1}">
+    	<exec executable="bash">
+        	<arg line='${script1}'/>
         	<arg line=" -1 -d" />
         </exec>
     </target>
@@ -265,7 +276,8 @@
 	<!-- Take 2'nd track from Archive, instead of Current track -->
     <target name="test666" depends="deploy" description="Run the whole synchronization chain">
         <echo>"Running gps_sync.sh ..."</echo>
-        <exec executable="${deploy.dir}/${script1}">
+		<exec executable="bash">
+        	<arg line='${script1}'/>
         	<arg line=" -2 -d" />
         </exec>
     </target>
