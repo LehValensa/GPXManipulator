@@ -28,29 +28,30 @@ import org.apache.commons.codec.digest.DigestUtils;
 public class UploadGpsiesFunction
 {
 	private static final Logger log = Logger.getLogger("");
-	
+
 	// Writer object for GPX export
 	private OutputStreamWriter _writer = null;
 	// URL to post form to
 	private static final String GPSIES_URL = "http://www.gpsies.com/upload.do";
 	// Keys for describing activities
 	private static final String[] ACTIVITY_KEYS = {"trekking", "walking", "jogging",
-		"mountainbiking", "biking", "motorbiking", "snowshoe", "sailing", "skating"};
-	
+			"mountainbiking", "biking", "motorbiking", "snowshoe", "sailing", "skating"};
+
 	// default activity, if none specified
 	private static final String DEF_ACTIVITY = ACTIVITY_KEYS[3];
-	
-	public static String proxyAuthUser;
-	public static String proxyAuthPassword;
-	
-	
+
+	// Login to http proxy
+	private static String proxyUser;
+	private static String proxyPassword;
+
+
 	// Convert input stream to string. For debugging purposes
 	/*
 	@SuppressWarnings("resource")
 	public static String getWebPageToString(String url) {
 		java.util.Scanner s = null;
 		String result = null;
-		
+
 		try {
 			URL server = new URL(url);
 			HttpURLConnection connection = (
@@ -66,8 +67,8 @@ public class UploadGpsiesFunction
 		}
 		return result;
 	}
-	*/
-	
+	 */
+
 	/**
 	 * Start the upload process (require separate thread?)
 	 * @param gpx 
@@ -75,60 +76,41 @@ public class UploadGpsiesFunction
 	public void startUpload(final StringWriter gpxRaw, String _filename, CommandLine cmd) throws Exception
 	{
 		BufferedReader reader = null;
-			
+
 		try
 		{
-			// Setup proxy authentication
-			proxyAuthUser = System.getProperty("http.proxyUser");
-			proxyAuthPassword = System.getProperty("http.proxyPassword");
-			log.fine("proxyUser=[" + proxyAuthUser + "] proxyPassword=[" + proxyAuthPassword + "]");
-			
-			if (proxyAuthUser != null && proxyAuthUser != "") {
-			    Authenticator.setDefault(new Authenticator() {
-	                @Override
-	                protected PasswordAuthentication
-	                getPasswordAuthentication() {
-	                    //respond only to proxy auth requests
-	                    if (getRequestorType().equals(RequestorType.PROXY)) {
-	                        return new PasswordAuthentication(
-	                        		proxyAuthUser,
-	                                proxyAuthPassword.toCharArray());
-	                    } else {
-	                        return null;
-	                    }
-	                }
-			    });
+			// Setup proxy and its authentication, if specified
+			setupProxy(cmd);
 
-			}
-			
 			// Establish connection to GPSies.
 			FormPoster poster = new FormPoster(new URL(GPSIES_URL));
 			log.fine("Connection to GPSies established");
-			
+
 			// fill in the form, add GPX file and submit the form
 			poster.setParameter("device", "Prune"); // use default device name inherited from gpsprune
-			
+
 			// Use either username/password or authentication hash for login to GPSies.
 			String username = cmd.getOptionValue("gpsies-username");
 			String password = cmd.getOptionValue("gpsies-password");
 			String authHash = cmd.getOptionValue("gpsies-authenticate-hash");
 			if (username != null && password != null) {
-			    // Send plain username/password pair. It works, but insecure. Commented out.
-			    //poster.setParameter("username", _username);
-			    //poster.setParameter("password", _password);
-				
+				// Send plain username/password pair. It works, but insecure. Commented out.
+				//poster.setParameter("username", _username);
+				//poster.setParameter("password", _password);
+
 				// Send encrypted hash instead of plain username/password pair
 				authHash = getAuthHash(username, password);
-			    // Show hash for reuse it directly in command-line
-			    log.fine("authenticateHash=[" + authHash + "]");
+				
 			} else if (authHash != null) {
 				// NOP
 			} else {
 				throw new Exception("Either username/password or authenticate hash should be specified.");
 			}
-			
+			// Show hash for reuse it directly in command-line
+			log.fine("authHash: " + authHash );
+
 			poster.setParameter("authenticateHash", authHash);
-			    		
+
 			poster.setParameter("trackTypes", cmd.getOptionValue("gpsies-activity", DEF_ACTIVITY));
 			poster.setParameter("filename", _filename);
 			poster.setParameter("fileDescription", cmd.getOptionValue("gpsies-description", ""));
@@ -155,16 +137,16 @@ public class UploadGpsiesFunction
 				}
 			}).start();
 			poster.setParameter("formFile", "filename.gpx", iStream);
-			
+
 			// post track to GPSies and analyze response from GPSies.
 			BufferedInputStream answer = new BufferedInputStream(poster.post());
 			int response = poster.getResponseCode();
 			reader = new BufferedReader(new InputStreamReader(answer));
 			String line = reader.readLine();
-		    
+
 			// Try to extract gpsies page url from the returned message
 			String pageUrl = null;
-			
+
 			if (response == 200 && line.substring(0, 2).toUpperCase().equals("OK"))
 			{
 				final int bracketPos = line.indexOf('[');
@@ -189,15 +171,65 @@ public class UploadGpsiesFunction
 		finally {
 			try {if (reader != null) reader.close();} catch (IOException e) {}
 		}
-		
+
 	}
-	
+
 	// prepare password hash	
 	private String getAuthHash (String username, String password) {
 		String validationString = username + "|" + DigestUtils.md5Hex(password);
 		String encryptedString = new String(Base64.encodeBase64(validationString.getBytes()));
 		return encryptedString;
 	}
-	
+
+	// setup system to use HTTP proxy
+	private void setupProxy (CommandLine cmd) {
+		
+		// Use proxy host and port defined in OS (works in Windows and Gnome 2 only)
+		if (cmd.hasOption("http-proxy-use-system")) {
+			System.setProperty("java.net.useSystemProxies", "true");
+			log.info("System proxy will be used");
+		}
+		
+		// Use proxy host and port defined in command line
+		// (overrides use of system proxy)
+		String proxyHost = cmd.getOptionValue("http-proxy-host");
+		String proxyPort = cmd.getOptionValue("http-proxy-port", "80");
+		log.fine("proxyHost=[" + proxyHost + "] proxyPort=[" + proxyPort + "]");
+		
+		if (proxyHost != null) {
+				System.setProperty("http.proxyHost", proxyHost);
+				System.setProperty("http.proxyPort", proxyPort);
+		}
+
+		// Setup authentication if proxy requires it
+
+
+		proxyUser = cmd.getOptionValue("http-proxy-user");
+		proxyPassword = cmd.getOptionValue("http-proxy-password");
+		// Get authentication directly from Java properties.
+		// This way is a bit incorrect, since overrides properties for SOCKS authentication.
+		//proxyAuthUser = System.getProperty("http.proxyUser");
+		//proxyAuthPassword = System.getProperty("http.proxyPassword");
+		log.fine("proxyUser=[" + proxyUser + "] proxyPassword=[" + proxyPassword + "]");
+
+		if (proxyUser != null && proxyPassword != null) {
+				Authenticator.setDefault(new Authenticator() {
+					@Override
+					protected PasswordAuthentication
+					getPasswordAuthentication() {
+						//respond only to proxy auth requests
+						if (getRequestorType().equals(RequestorType.PROXY)) {
+							return new PasswordAuthentication(
+									proxyUser,
+									proxyPassword.toCharArray());
+						} else {
+							return null;
+						}
+					}
+				});
+		}
+		
+	}
+
 }
 

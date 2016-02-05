@@ -1,4 +1,4 @@
-#!/bin/bash
+#!bash
 # script to sync garmin mass storage device (such as Etrex 30x) with local directory.
 # Script synchronizes:
 # 1 - archived tracks from garmin to local dir. Archived tracks are passed track logs.
@@ -103,7 +103,7 @@ while [ $all_done -eq 0 ]; do
 	proxyPassword=`bash gpx_get_proxy_password.sh`;	# Password for proxy, stored externally
 	if [ -n "${proxyUser}" ]; then
 		if [ -n "${proxyPassword}" ]; then
-			proxyAuthParam="-Dhttp.proxyUser=${proxyUser} -Dhttp.proxyPassword=${proxyPassword}"
+			proxyAuthParam="--http-proxy-user=${proxyUser} --http-proxy-password=${proxyPassword}"
 		else
 			echo "ERROR: no proxy password specified"
 			exit 4
@@ -116,8 +116,9 @@ while [ $all_done -eq 0 ]; do
     [ ${DEBUG} -eq 1 ] && debug_option="-d"
     echo "Run GPXManipulator. input=[${input_track_name}] output=[${parsed_track_name}]"
 
-	java -Djava.net.useSystemProxies=true ${proxyAuthParam} -cp . -jar GPXManipulator.jar \
+	java -cp . -jar GPXManipulator.jar \
     		$debug_option -i "${input_track_name}" -o "${LOCAL_GPX_BASE_WIN}/live/${parsed_track_name}" \
+    		--http-proxy-use-system ${proxyAuthParam} \
     		--gpsies-launch-browser \
         	--gpsies-activity="biking" \
         	--gpsies-description="MyDescription" \

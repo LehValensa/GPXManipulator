@@ -36,7 +36,7 @@ The only XML formatting is done using JAXB functions. JAXB does not change a str
 * After options of GPXManipulator are tuned - insert them into gps_sync.sh script that is responsible to run the whole synchronization chain.
 
 # Command-line options
-	usage: java -jar GPXManupulator.jar [options]
+	usage: java -jar GPXManupulator.jar <-i input_file.gpx> <-o output_file.gpx> [options]
 	            where options are:
 	 -d,--debug-mode                       Set debug level and detailed
 	                                       tracing
@@ -55,6 +55,14 @@ The only XML formatting is done using JAXB functions. JAXB does not change a str
 	    --hotspot-lat-min <arg>            Minimal lattitude value of HotSpot
 	    --hotspot-lon-max <arg>            Maximal lontitude value of HotSpot
 	    --hotspot-lon-min <arg>            Minimal lontitude value of HotSpot
+	    --http-proxy-host <arg>            Use given proxy host
+	    --http-proxy-password <arg>        Use given password if proxy
+	                                       requires authentication
+	    --http-proxy-port <arg>            Use given proxy port
+	    --http-proxy-use-system            Use proxy defined in operating
+	                                       system
+	    --http-proxy-user <arg>            Use given username if proxy
+	                                       requires authentication
 	 -i,--input-file <arg>                 Input GPX file
 	 -o,--output-file <arg>                Output GPX file
 	    --preserve-creator                 Do not change creator field, leave
@@ -68,6 +76,10 @@ If proxy requires authentication, use following Java options:
 
 	-Dhttp.proxyUser=${proxyUser} -Dhttp.proxyPassword=${proxyPassword}
 
+Exploring password for GPSies in command line is not secure. Use authentication hash instead. To find out what is authentication hash for your login, upload some file to GPSies with debug level set on:
+
+	java -jar GPXManipulator.jar -i somefile.gpx -d --gpsies-username <username> --gpsies-password <password> | grep authHash 
+ 
 # Development
 GPXManipulator is witten on Java using Eclipse IDE.
 JAR is built by ANT.

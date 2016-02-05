@@ -58,6 +58,11 @@ public class CliHandler
 	    opts.addOption(new Option(null,	"gpsies-activity",		hasArg, "Assigned activity to track. Example: walking"));
 	    opts.addOption(new Option(null,	"gpsies-description",	hasArg, "Description of track"));
 	    opts.addOption(new Option(null,	"gpsies-launch-browser",! hasArg, "Launch browser to see uploaded file"));
+	    opts.addOption(new Option(null,	"http-proxy-use-system",! hasArg, "Use proxy defined in operating system"));
+	    opts.addOption(new Option(null,	"http-proxy-host",		hasArg, "Use given proxy host"));
+	    opts.addOption(new Option(null,	"http-proxy-port",		hasArg, "Use given proxy port"));
+	    opts.addOption(new Option(null,	"http-proxy-user",		hasArg, "Use given username if proxy requires authentication"));
+	    opts.addOption(new Option(null,	"http-proxy-password",	hasArg, "Use given password if proxy requires authentication"));
 
 	    Option help = new Option("h",	"help",				! hasArg, "Command line help");
 	    groupRequired.addOption(help); // set this option mandatory (either -i <GPX> or -h should be specified)
@@ -93,7 +98,7 @@ public class CliHandler
 			 log.severe("Failed to parse comand line properties\n" + message);
 		 
 		 HelpFormatter formater = new HelpFormatter();
-		 formater.printHelp("java -jar GPXManupulator.jar [options]\nwhere options are:", opts);
+		 formater.printHelp("java -jar GPXManupulator.jar <-i input_file.gpx> <-o output_file.gpx> [options]\nwhere options are:", opts);
 		 ExitCode.exitNolog(exitValue);
 	 }	 
 }

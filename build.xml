@@ -44,6 +44,8 @@
 	<property name="script1" value="gps_sync.sh"/>
 	<property name="script2" value="gpx_get_gpsies_auth_hash.sh"/>
 	<property name="testgpx.dir" value="${user.home}/gpx/live"/>
+	<property name="script3" value="gpx_get_proxy_user.sh"/>
+	<property name="script4" value="gpx_get_proxy_password.sh"/>
 	
 	<!-- MAIN WORK -->
 	
@@ -101,6 +103,17 @@
 		<!-- Copy gps_sync.sh script-->
 		<copy file="${scripts.dir}/${script1}" todir="${deploy.dir}"/>
 		<chmod file="${deploy.dir}/${script1}" perm="a+rx"/>
+		
+		<!-- Copy authentication scripts -->
+		<!-- Put your own values into authentication scripts and uncomment their deployment below -->
+		<!--
+		<copy file="${scripts.dir}/${script2}" todir="${deploy.dir}"/>
+		<chmod file="${deploy.dir}/${script2}" perm="a+rx"/>
+		<copy file="${scripts.dir}/${script3}" todir="${deploy.dir}"/>
+		<chmod file="${deploy.dir}/${script3}" perm="a+rx"/>
+		<copy file="${scripts.dir}/${script4}" todir="${deploy.dir}"/>
+		<chmod file="${deploy.dir}/${script4}" perm="a+rx"/>
+		-->
 
 	</target>
 	
