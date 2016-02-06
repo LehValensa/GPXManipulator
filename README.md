@@ -7,7 +7,7 @@ You just came back from a bicycle trip and want to share this trip with others. 
 * waits until OS will mount garmin device
 * copies new track from garmin to PC
 * deletes trackpoints near your home location.
-* uploads track to gpsies.com.
+* uploads track to http://www.gpsies.com/.
 * launches browser with track uploaded to gpsies.
 * unmounts garmin device
 After script is finished, you can check it on gpsies, change track name to more readable than TrackYYYMMDD..., send an URL of track to your friends, so they can see where you've just been and how many you've ridden.
@@ -16,7 +16,7 @@ After script is finished, you can check it on gpsies, change track name to more 
 * Change track name.
 * Delete points within predefined HotSpot area.
 * Add newlines to track and format it into human-readable form.
-* Upload track to [www.gpsies.com](www.gpsies.com).
+* Upload track to http://www.gpsies.com/.
 * Launch browser with track uploaded (visualize track).
 * Work through proxy with optional authentication.
 * TODO: reverse track (swap start with end), upload to Strava,...may be more, when needed or requested by someone. 
@@ -40,14 +40,17 @@ The only XML formatting is done using JAXB functions. JAXB does not change a str
     java -jar GPXManipulator.jar -i /media/alex/GARMIN/Garmin/GPX/Current/Current.gpx
 
 ## Example 2. Change internal name of track and save it to home dir.
-    java -jar GPXManipulator.jar --track-name="The best downhill" -i /media/alex/GARMIN/Garmin/GPX/Current/Current.gpx -o $HOME/MyTrackTodayTheBestDownhill.gpx
+    java -jar GPXManipulator.jar --track-name="The best downhill" \
+    -i /media/alex/GARMIN/Garmin/GPX/Current/Current.gpx -o $HOME/MyTrackTodayTheBestDownhill.gpx
 
 ## Example 3. Upload track to GPSies
-    java -jar GPXManipulator.jar -i /media/alex/GARMIN/Garmin/GPX/Current/Current.gpx -o $HOME/MyTrackToday.gpx \
+    java -jar GPXManipulator.jar \
+    -i /media/alex/GARMIN/Garmin/GPX/Current/Current.gpx -o $HOME/MyTrackToday.gpx \
     --gpsies-username=alex --gpsies-password=12345
 
 ## Example 4. Remove points in predefined area
-    java -jar GPXManipulator.jar -i /media/alex/GARMIN/Garmin/GPX/Current/Current.gpx -o $HOME/HotSwapRemoved.gpx \
+    java -jar GPXManipulator.jar \
+    -i /media/alex/GARMIN/Garmin/GPX/Current/Current.gpx -o $HOME/HotSwapRemoved.gpx \
     --hotspot-lat-min=40.00 --hotspot-lat-max=40.50 \
     --hotspot-lon-min=21.04 --hotspot-lon-max=22.50
 
@@ -105,7 +108,8 @@ If proxy requires authentication, use following Java options:
 
 [AuthHashSetup]: Exploring password for GPSies in command line is not secure. Use authentication hash instead. To find out what is authentication hash for your login, upload some file to GPSies with *debug* level set on:
 
-	java -jar GPXManipulator.jar -i somefile.gpx -d --gpsies-username <username> --gpsies-password <password> | grep authHash 
+	java -jar GPXManipulator.jar -i somefile.gpx -d \
+	--gpsies-username <username> --gpsies-password <password> | grep authHash 
  
 # Development
 GPXManipulator is witten on Java using Eclipse IDE.
