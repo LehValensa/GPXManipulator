@@ -60,7 +60,9 @@ public class GPXManipulator {
 	        
 		}
 		log.info("Config -> Logger level is: " + log.getLevel().toString());
-
+		
+		// Setup proxy and its authentication, if specified
+		Tools.setupProxy(clh.cmd);
 		
 		// Read XML file and put its content into Java objects.  
         try
